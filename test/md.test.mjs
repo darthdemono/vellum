@@ -66,3 +66,8 @@ test('a note with its own h1 still ends up with one h1', () => {
   assert.doesNotMatch(h, /<h1/); assert.match(h, /<h2 id="inner-title"/)
 })
 test('block id', () => assert.match(r('Para text ^abc-1'), /<p id="\^abc-1">Para text<\/p>/))
+
+test('word markers get the ragged list class', () => {
+  assert.match(r('1. <!--n:Firstly--> a\n2. <!--n:Secondly--> b\n'), /class="xl xn xw"/)
+  assert.doesNotMatch(r('1. <!--n:(a)--> a\n2. <!--n:(b)--> b\n'), /xw/)
+})
