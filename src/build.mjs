@@ -44,6 +44,7 @@ export async function build(site, { log = console.log } = {}) {
     const now = new Date()
     pages.unshift({ rel: 'index.md', slug: 'index', fm, fmRaw, body, title: String(fm.title ?? site.title), tags: [], aliases: [], date: now, updated: now, dated: false, cssclasses: [], home: true })
   }
+  { const seenSlug = new Map(); for (const p of pages) { const k = p.slug.toLowerCase(); if (seenSlug.has(k)) log(`warning: ${p.rel} and ${seenSlug.get(k)} share the URL /${p.slug} (one overwrites the other)`); else seenSlug.set(k, p.rel) } }
   const resolver = makeResolver(pages, assets)
   const highlight = await makeHighlighter(pages)
   const md = createMarkdown({
@@ -59,7 +60,7 @@ export async function build(site, { log = console.log } = {}) {
     const h1 = body.match(/^\s*#\s+(.+?)\s*\n/)
     if (h1 && h1[1].trim() === p.title.trim()) body = body.slice(h1[0].length)
     const env = { page: p, links: new Set(), inlineTags: new Set(), slugger: new GithubSlugger() }
-    p.html = md.render(body, env)
+    p.html = md.render(body, env).replace(/<img\b(?![^>]*\balt=)/g, '<img alt=""') // raw <img> in a note: decorative unless the author says otherwise
     if (p.html.includes('id="footnote-label"')) env.toc.push({ depth: 2, text: site.footnoteLabel || 'References', id: 'footnote-label' })
     p.toc = env.toc; p.hasMath = !!env.hasMath; p.hasMermaid = !!env.hasMermaid; p.links = [...env.links]
     for (const t of env.inlineTags) if (!p.tags.includes(t)) p.tags.push(t)
@@ -104,7 +105,10 @@ export async function build(site, { log = console.log } = {}) {
   const ver = { css: hash(css), js: hash(js) }
   const exCache = new Map()
   const fullOk = site.llms.full === true || (site.llms.full === 'auto' && pages.reduce((n, p) => n + p.body.length, 0) < 4_000_000)
-  const ctx = { homeMd: fullOk ? '/llms-full.txt' : '/llms.txt', site, ver, slugs, folders, lazyTree, explorer: (slug) => explorerHtml(tree, slug) }
+  const titleCount = new Map()
+  for (const p of all) titleCount.set(p.title, (titleCount.get(p.title) ?? 0) + 1)
+  const dupTitles = new Set([...titleCount].filter(([, n]) => n > 1).map(([t]) => t))
+  const ctx = { dupTitles, homeMd: fullOk ? '/llms-full.txt' : '/llms.txt', site, ver, slugs, folders, lazyTree, explorer: (slug) => explorerHtml(tree, slug) }
   const sink = new Sink(site.out, path.join(site.cache, 'manifest.json'))
 
   // 4. emit pages (+ aliases, og, llms)

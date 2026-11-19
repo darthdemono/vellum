@@ -16,7 +16,10 @@ export function pageHtml(ctx, p) {
   const { site, ver } = ctx
   const base = 'https://' + site.baseUrl
   const url = base + (p.slug === 'index' ? '/' : encodeURI(hrefOf(p.slug)))
-  const title = p.slug === 'index' ? site.title : `${p.title} | ${site.title}`
+  // pages that share a title ("Endterm" in several courses) get their folder in the <title>
+  const segs = p.slug.split('/'), parent = (segs[segs.length - 1] === 'index' ? segs[segs.length - 3] : segs[segs.length - 2])?.replace(/-/g, ' ')
+  const pageName = ctx.dupTitles?.has(p.title) && parent ? `${p.title} (${parent})` : p.title
+  const title = p.slug === 'index' ? site.title : `${pageName} | ${site.title}`
   const desc = p.desc || site.description || ''
   const og = `${base}/og/${p.slug}.png`
   const crumbs = p.slug === 'index' || p.noCrumbs ? '' : '<nav class="crumbs"><a href="/">Home</a>' +
