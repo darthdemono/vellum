@@ -1,0 +1,33 @@
+# Dependencies and output
+node_modules/
+dist/
+.cache/
+
+# Site configs (personal paths and domains) and proprietary fonts stay local. examples/ is the public sample.
+sites/
+fonts/
+
+# Environment
+.env
+.env.*
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local working files
+.agents/
+.claude/
+.codex/
+.gemini/
+.serena/
+Handoff/
+handoff/
+Research/
+research/
+CLAUDE*.md
+AGENTS*.md
+CODEX*.md
+GEMINI*.md

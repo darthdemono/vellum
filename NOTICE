@@ -1,0 +1,8 @@
+vellum
+Copyright 2026 Jubair Hasan (DarthDemono)
+
+Licensed under the Apache License, Version 2.0.
+
+vellum is original code. Its feature set (wikilinks, callouts, backlinks, explorer, search, link previews,
+llms.txt) is inspired by Quartz (https://quartz.jzhao.xyz, MIT), whose behaviour it reproduces; no Quartz
+source code is included. URL slugs follow Quartz's rules so existing links keep working.
