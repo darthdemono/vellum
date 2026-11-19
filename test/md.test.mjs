@@ -70,4 +70,5 @@ test('block id', () => assert.match(r('Para text ^abc-1'), /<p id="\^abc-1">Para
 test('word markers get the ragged list class', () => {
   assert.match(r('1. <!--n:Firstly--> a\n2. <!--n:Secondly--> b\n'), /class="xl xn xw"/)
   assert.doesNotMatch(r('1. <!--n:(a)--> a\n2. <!--n:(b)--> b\n'), /xw/)
+  assert.doesNotMatch(r('1. <!--n:First--> a\n2. <!--n:Second--> b\n'), /xw/) // plain ordinals stay a two-column table
 })
