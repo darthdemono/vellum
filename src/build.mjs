@@ -52,7 +52,7 @@ export async function build(site, { log = console.log } = {}) {
     if (h1 && h1[1].trim() === p.title.trim()) body = body.slice(h1[0].length)
     const env = { page: p, links: new Set(), inlineTags: new Set(), slugger: new GithubSlugger() }
     p.html = md.render(body, env)
-    p.toc = env.toc; p.hasMath = !!env.hasMath
+    p.toc = env.toc; p.hasMath = !!env.hasMath; p.hasMermaid = !!env.hasMermaid; p.links = [...env.links]
     for (const t of env.inlineTags) if (!p.tags.includes(t)) p.tags.push(t)
     const text = plain(p.html)
     p.text = text
@@ -93,7 +93,8 @@ export async function build(site, { log = console.log } = {}) {
   const css = cssFor(site, asset('style.css'), fonts), js = asset('client.js')
   const ver = { css: hash(css), js: hash(js) }
   const exCache = new Map()
-  const ctx = { site, ver, slugs, folders, lazyTree, explorer: (slug) => explorerHtml(tree, slug) }
+  const fullOk = site.llms.full === true || (site.llms.full === 'auto' && pages.reduce((n, p) => n + p.body.length, 0) < 4_000_000)
+  const ctx = { homeMd: fullOk ? '/llms-full.txt' : '/llms.txt', site, ver, slugs, folders, lazyTree, explorer: (slug) => explorerHtml(tree, slug) }
   const sink = new Sink(site.out, path.join(site.cache, 'manifest.json'))
 
   // 4. emit pages (+ aliases, og, llms)
@@ -121,8 +122,14 @@ export async function build(site, { log = console.log } = {}) {
   const deep = site.search.depth === 'full' && pages.length <= 400
   sink.write('search.json', JSON.stringify(all.filter((p) => !p.generated).map((p) => ({ u: hrefOf(p.slug), t: p.title, g: p.tags, x: deep ? clip(p.text, 3000) : p.desc }))))
   sink.write('llms.txt', siteLlms(site, pages))
-  const full = site.llms.full === true || (site.llms.full === 'auto' && pages.reduce((n, p) => n + p.body.length, 0) < 4_000_000)
-  if (full) sink.write('llms-full.txt', siteLlmsFull(site, pages))
+  {
+    const real = pages.filter((p) => !p.generated), ix = new Map(real.map((p, i) => [p.slug, i]))
+    const e = []
+    for (const p of real) for (const s of p.links ?? []) if (ix.has(s) && s !== p.slug) e.push([ix.get(p.slug), ix.get(s)])
+    sink.write('graph.json', JSON.stringify({ n: real.map((p) => [p.slug, p.title]), e }))
+  }
+  if (pages.some((p) => p.hasMermaid)) sink.copy('static/mermaid.min.js', createRequire(import.meta.url).resolve('mermaid/package.json').replace('package.json', 'dist/mermaid.min.js'))
+  if (fullOk) sink.write('llms-full.txt', siteLlmsFull(site, pages))
   sink.write('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${base}/sitemap.xml\n`)
   sink.write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map((p) => `<url><loc>${esc(base + (p.slug === 'index' ? '/' : encodeURI(hrefOf(p.slug))))}</loc><lastmod>${p.updated.toISOString().slice(0, 10)}</lastmod></url>`).join('\n')}\n</urlset>\n`)
   const recent = [...pages].sort((a, b) => b.date - a.date).slice(0, 30)

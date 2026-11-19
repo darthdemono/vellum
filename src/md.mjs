@@ -35,7 +35,7 @@ export function createMarkdown({ resolve, assetUrl, highlight, footnoteLabel = '
     const t = tokens[idx]
     if (t.info.trim().split(/\s/)[0] === 'mermaid') {
       env.hasMermaid = true
-      return `<pre class="mermaid-src"><code class="mermaid">${esc(t.content)}</code></pre>\n`
+      return `<pre class="mermaid-src"><code class="language-mermaid">${esc(t.content)}</code></pre>\n`
     }
     return fence(tokens, idx, options, env, slf)
   }

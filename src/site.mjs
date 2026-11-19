@@ -43,7 +43,7 @@ export function cssFor(site, baseCss, fonts) {
   const t = site.theme
   const block = (c) => V.filter((k) => c[k]).map((k) => `--${k}:${c[k]}`).join(';')
   const faces = fonts.css
-  const vars = `--headerFont:${fonts.stacks.header};--bodyFont:${fonts.stacks.body};--codeFont:${fonts.stacks.code}`
+  const vars = `--base:${site.baseSize ?? '1.0625rem'};--headerFont:${fonts.stacks.header};--bodyFont:${fonts.stacks.body};--codeFont:${fonts.stacks.code}`
   const custom = site.customCss && fs.existsSync(site.customCss) ? fs.readFileSync(site.customCss, 'utf8') : ''
   return `${faces}\n:root{${block(t.colors.light)};${vars}}\n[data-theme=dark]{${block(t.colors.dark)}}\n${baseCss}\n${custom}`
 }
@@ -53,7 +53,7 @@ export function buildTree(pages, site) {
   const root = { kids: new Map() }
   const order = site.explorer.order.map((s) => s.toLowerCase())
   for (const p of pages) {
-    if (p.generated) continue
+    if (p.generated || p.slug === 'index') continue
     const segs = p.rel.replace(/\.md$/i, '').split('/')
     let node = root
     for (const s of segs.slice(0, -1)) {
