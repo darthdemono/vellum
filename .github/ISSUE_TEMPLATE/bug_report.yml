@@ -1,0 +1,16 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes: { label: Version, description: "Output of: node bin/vellum.mjs --version or the package.json version" }
+    validations: { required: true }
+  - type: input
+    id: os
+    attributes: { label: Operating system and Node version }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Steps, description: A minimal note that reproduces it, and what you expected }
+    validations: { required: true }
