@@ -4,7 +4,7 @@ import GithubSlugger from 'github-slugger'
 
 const IMG = /\.(png|jpe?g|gif|svg|webp|avif|bmp)$/i
 // \| is an escaped pipe (Obsidian writes it inside tables); it separates the alias like a plain |
-const WIKI = /^\[\[([^\]|#\\]*)(?:#([^\]|\\]*))?\\?(?:\|([^\]]*))?\]\]/
+const WIKI = /^\[\[([^\[\]|#\\]*)(?:#([^\]|\\]*))?\\?(?:\|([^\]]*))?\]\]/
 
 export const headingId = (text) => new GithubSlugger().slug(text)
 

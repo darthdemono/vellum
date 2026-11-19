@@ -12,6 +12,7 @@ test('wikilinks, alias, anchor, broken', () => {
   assert.match(r('[[Other Note|alias]]'), />alias</)
   assert.match(r('[[Other Note#^sec-5|s]]'), /href="\/Notes\/Other-Note#\^sec-5"/)
   assert.match(r('[[Missing]]'), /broken/)
+  assert.match(r('by the [[[Other Note|x]] act'), /href="\/Notes\/Other-Note"/) // stray "[" in front
 })
 test('a space before the pipe does not break a wikilink', () => {
   assert.match(r('[[Other Note \\|shown]]'), /href="\/Notes\/Other-Note" class="internal"[^>]*>shown/)
