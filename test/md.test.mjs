@@ -66,3 +66,10 @@ test('a note with its own h1 still ends up with one h1', () => {
   assert.doesNotMatch(h, /<h1/); assert.match(h, /<h2 id="inner-title"/)
 })
 test('block id', () => assert.match(r('Para text ^abc-1'), /<p id="\^abc-1">Para text<\/p>/))
+
+test('callout titles are Bengali on a Bengali page', () => {
+  const rb = (s, language) => md.render(preprocess(s), { slugger: new GithubSlugger(), links: new Set(), page: { slug: 'x', fm: { language } } })
+  assert.match(rb('> [!Explanation]\n> text', 'bn'), />ব্যাখ্যা</)
+  assert.match(rb('> [!Explanation]\n> text', 'en'), />Explanation</)
+  assert.match(rb('> [!Warning] Omitted\n> text', 'bn'), />Omitted</) // an explicit title wins
+})

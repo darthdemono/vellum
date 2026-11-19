@@ -6,6 +6,9 @@ const IMG = /\.(png|jpe?g|gif|svg|webp|avif|bmp)$/i
 // \| is an escaped pipe (Obsidian writes it inside tables); it separates the alias like a plain |
 const WIKI = /^\[\[([^\[\]|#\\]*)(?:#([^\]|\\]*))?\\?(?:\|([^\]]*))?\]\]/
 
+// default callout titles on a Bengali page (page front matter: language: bn)
+const CALLOUT_BN = { explanation: 'ব্যাখ্যা', illustration: 'দৃষ্টান্ত', illustrations: 'দৃষ্টান্ত', exception: 'ব্যতিক্রম', exceptions: 'ব্যতিক্রম', definition: 'সংজ্ঞা', preamble: 'প্রস্তাবনা', note: 'টীকা', info: 'তথ্য', warning: 'সতর্কতা' }
+
 export const headingId = (text) => new GithubSlugger().slug(text)
 
 export default function obsidian(md, { resolve, assetUrl, tagBase = '/tags/' }) {
@@ -95,7 +98,7 @@ export default function obsidian(md, { resolve, assetUrl, tagBase = '/tags/' }) 
         const m = /^\[!([\w-]+)\]([+-]?)[ \t]*([^\n]*)(?:\n|$)/.exec(inl.content)
         if (!m) continue
         const [whole, type, fold, rawTitle] = m
-        const title = rawTitle || type.charAt(0).toUpperCase() + type.slice(1)
+        const title = rawTitle || (state.env.page?.fm?.language === 'bn' && CALLOUT_BN[type.toLowerCase()]) || type.charAt(0).toUpperCase() + type.slice(1)
         let j = i + 1, depth = 0
         for (; j < toks.length; j++) {
           if (toks[j].type === 'blockquote_open') depth++
