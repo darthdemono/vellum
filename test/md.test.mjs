@@ -41,4 +41,10 @@ test('heading levels are normalised when asked', () => {
   const h = m.render('##### A\n\ntext\n\n##### B\n\n###### C\n', { slugger: new GithubSlugger(), links: new Set(), page: { slug: 'x' } })
   assert.match(h, /<h2 id="a"/); assert.match(h, /<h3 id="c"/)
 })
+test('a heading with a wikilink keeps the link text in the contents list', () => {
+  const env = { slugger: new GithubSlugger(), links: new Set(), page: { slug: 'x' } }
+  const m = createMarkdown({ resolve: (t) => (t === 'canvas.c' ? { slug: 'canvas-c' } : null), assetUrl: () => null })
+  m.render('### [[canvas.c]]:\n\ntext\n', env)
+  assert.equal(env.toc[0].text, 'canvas.c:')
+})
 test('block id', () => assert.match(r('Para text ^abc-1'), /<p id="\^abc-1">Para text<\/p>/))

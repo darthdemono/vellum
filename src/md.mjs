@@ -32,7 +32,9 @@ export function createMarkdown({ resolve, assetUrl, highlight, footnoteLabel = '
       if (t.type !== 'heading_open') continue
       if (remap) { const nl = 'h' + remap.get(+t.tag.slice(1)); t.tag = nl; state.tokens[i + 2].tag = nl }
       const inl = state.tokens[i + 1]
-      const text = inl.children?.filter((c) => c.type === 'text' || c.type === 'code_inline').map((c) => c.content).join('') ?? inl.content
+      // link text counts too: wikilinks are inline HTML (<a>text</a>), so strip the tags and keep the words
+      const plain = (s) => s.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&')
+      const text = inl.children?.filter((c) => c.type === 'text' || c.type === 'code_inline' || c.type === 'html_inline').map((c) => (c.type === 'html_inline' ? plain(c.content) : c.content)).join('') ?? inl.content
       const id = state.env.slugger ? state.env.slugger.slug(text) : text
       t.attrSet('id', id)
       state.env.toc.push({ depth: +t.tag.slice(1), text, id })
