@@ -31,6 +31,7 @@ export async function loadSite(configPath) {
   cfg.out = expand(cfg.out ?? `dist/${cfg.name}`, process.cwd())
   cfg.cache = expand(cfg.cache ?? `.cache/${cfg.name}`, process.cwd())
   if (cfg.static) cfg.static = expand(cfg.static, base)
+  if (cfg.home) cfg.home = expand(cfg.home, base)
   if (cfg.customCss) cfg.customCss = expand(cfg.customCss, base)
   if (cfg.og?.fontFiles) cfg.og.fontFiles = cfg.og.fontFiles.map((f) => expand(f, base))
   cfg.theme.colors.light ||= {}
@@ -62,14 +63,14 @@ export function buildTree(pages, site) {
     }
     const leaf = segs[segs.length - 1]
     if (segs.length > 1 && (leaf === 'index' || leaf === segs[segs.length - 2])) node.slug = p.slug
-    else node.kids.set(leaf + '\x00', { name: p.title, slug: p.slug, leaf: true })
+    else node.kids.set(leaf + '\x00', { name: p.title, slug: p.slug, leaf: true, t: p.dated ? p.date.getTime() : 0 })
   }
   const out = (node) => {
     const items = [...node.kids.values()]
     const folders = items.filter((i) => !i.leaf), files = items.filter((i) => i.leaf)
     const rank = (n) => { const i = order.indexOf(n.name.toLowerCase()); return i < 0 ? 999 : i }
     folders.sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name, 'en', { numeric: true }))
-    files.sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }))
+    files.sort((a, b) => (site.explorer.byDate === false ? 0 : b.t - a.t) || a.name.localeCompare(b.name, 'en', { numeric: true }))
     return [...folders.map((f) => [f.name, f.slug, out(f)]), ...files.map((f) => [f.name, f.slug])]
   }
   return out(root)

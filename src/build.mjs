@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import GithubSlugger from 'github-slugger'
-import { scan, makeResolver } from './content.mjs'
+import { scan, makeResolver, splitFrontmatter } from './content.mjs'
 import { createMarkdown, preprocess } from './md.mjs'
 import { pageHtml, explorerHtml } from './render.mjs'
 import { buildTree, cssFor } from './site.mjs'
@@ -36,10 +36,18 @@ export async function build(site, { log = console.log } = {}) {
   const t0 = Date.now()
   const { pages, assets } = scan(site.content, { ignore: site.ignore })
   if (!pages.length) throw new Error('no markdown pages in ' + site.content)
+  if (site.home) {
+    // A hand-written introduction becomes the home page; the vault's own index moves to site.indexSlug.
+    const raw = fs.readFileSync(site.home, 'utf8'), { fm, raw: fmRaw, body } = splitFrontmatter(raw)
+    const old = pages.find((p) => p.slug === 'index')
+    if (old) { old.slug = site.indexSlug ?? 'index-page'; old.rel = old.slug + '.md'; if (old.title === 'index') old.title = site.indexTitle ?? 'Index' }
+    const now = new Date()
+    pages.unshift({ rel: 'index.md', slug: 'index', fm, fmRaw, body, title: String(fm.title ?? site.title), tags: [], aliases: [], date: now, updated: now, dated: false, cssclasses: [], home: true })
+  }
   const resolver = makeResolver(pages, assets)
   const highlight = await makeHighlighter(pages)
   const md = createMarkdown({
-    resolve: resolver.page, highlight, extlist: site.lists,
+    resolve: resolver.page, highlight, extlist: site.lists, footnoteLabel: site.footnoteLabel, normalizeHeadings: site.normalizeHeadings,
     assetUrl: (t) => { const a = resolver.asset(t); return a ? '/' + a.out : null },
   })
 
@@ -52,6 +60,7 @@ export async function build(site, { log = console.log } = {}) {
     if (h1 && h1[1].trim() === p.title.trim()) body = body.slice(h1[0].length)
     const env = { page: p, links: new Set(), inlineTags: new Set(), slugger: new GithubSlugger() }
     p.html = md.render(body, env)
+    if (p.html.includes('id="footnote-label"')) env.toc.push({ depth: 2, text: site.footnoteLabel || 'References', id: 'footnote-label' })
     p.toc = env.toc; p.hasMath = !!env.hasMath; p.hasMermaid = !!env.hasMermaid; p.links = [...env.links]
     for (const t of env.inlineTags) if (!p.tags.includes(t)) p.tags.push(t)
     const text = plain(p.html)
@@ -75,7 +84,8 @@ export async function build(site, { log = console.log } = {}) {
     generated.push({ slug: f + '/index', rel: f + '/index.md', title: f.split('/').pop().replace(/-/g, ' '), html: list(items), tags: [], generated: true, date: new Date(), toc: [], backlinks: [], desc: '' })
   }
   const tagMap = new Map()
-  for (const p of pages) for (const t of p.tags) { if (!tagMap.has(t)) tagMap.set(t, []); tagMap.get(t).push(p) }
+  // a nested tag Work/AgamirHashi also lists under its parent Work, as on the previous site
+  for (const p of pages) for (const t of p.tags) { const parts = t.split('/'); for (let i = 1; i <= parts.length; i++) { const k = parts.slice(0, i).join('/'); if (!tagMap.has(k)) tagMap.set(k, []); if (!tagMap.get(k).includes(p)) tagMap.get(k).push(p) } }
   for (const [t, ps] of tagMap) generated.push({ slug: 'tags/' + t, rel: 'tags/' + t + '.md', title: '#' + t, html: list(ps.map((p) => ({ href: hrefOf(p.slug), title: p.title, desc: p.desc }))), tags: [], generated: true, date: new Date(), toc: [], backlinks: [], desc: ps.length + ' pages tagged ' + t })
   generated.push({ slug: 'tags/index', rel: 'tags/index.md', title: 'Tags', html: list([...tagMap].sort().map(([t, ps]) => ({ href: '/tags/' + t, title: '#' + t, desc: ps.length + ' pages' }))), tags: [], generated: true, date: new Date(), toc: [], backlinks: [], desc: 'All tags' })
   if (site.disclosure && !bySlug.has('about')) {
@@ -104,7 +114,7 @@ export async function build(site, { log = console.log } = {}) {
   const seen = new Set(slugs)
   for (const p of all) {
     sink.write(outFileOf(p.slug), pageHtml(ctx, p))
-    if (!p.generated) sink.write(p.slug + '/llms.txt', pageLlms(p))
+    if (!p.generated) sink.write(p.slug + '/llms.txt', pageLlms(p, site.footnoteLabel))
     const key = ogData(p).key
     if (sink.old['og/' + p.slug + '.png'] === key && fs.existsSync(path.join(site.out, 'og', p.slug + '.png'))) { sink.now['og/' + p.slug + '.png'] = key; sink.stats.skipped++ } else sink.write('og/' + p.slug + '.png', fs.readFileSync(ogDir + '/' + key + '.png'), key)
     for (const a of p.aliases ?? []) {
