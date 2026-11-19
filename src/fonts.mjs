@@ -15,7 +15,8 @@ const fs400 = (pkg, name, extra = {}) => [
   { dir: () => fsrc(pkg), file: `${name}-latin-400-italic.woff2`, weight: 400, style: 'italic', optional: true, ...extra },
   { dir: () => fsrc(pkg), file: `${name}-latin-700-italic.woff2`, weight: 700, style: 'italic', optional: true, ...extra },
 ]
-const bn = (pkg, name) => [400, 700].map((weight) => ({ dir: () => fsrc(pkg), file: `${name}-bengali-${weight}-normal.woff2`, weight, range: BN }))
+// size-adjust: Bengali glyphs sit smaller than Latin ones at the same font-size, so the Bengali faces are scaled up
+const bn = (pkg, name, adjust) => [400, 700].map((weight) => ({ dir: () => fsrc(pkg), file: `${name}-bengali-${weight}-normal.woff2`, weight, range: BN, adjust }))
 
 export const PRESETS = {
   'Adobe Garamond Pro': [{ dir: () => LOCAL, file: 'adobe-garamond-pro/AGaramondPro-Regular.woff', weight: 400 }],
@@ -26,8 +27,8 @@ export const PRESETS = {
   'Roboto Mono': fs400('roboto-mono', 'roboto-mono'),
   'Noto Serif': fs400('noto-serif', 'noto-serif'),
   'Noto Sans': fs400('noto-sans', 'noto-sans'),
-  'Noto Serif Bengali': bn('noto-serif-bengali', 'noto-serif-bengali'),
-  'Noto Sans Bengali': bn('noto-sans-bengali', 'noto-sans-bengali'),
+  'Noto Serif Bengali': bn('noto-serif-bengali', 'noto-serif-bengali', '112%'),
+  'Noto Sans Bengali': bn('noto-sans-bengali', 'noto-sans-bengali', '106%'),
 }
 const GENERIC = { header: 'Georgia,serif', body: 'system-ui,sans-serif', code: 'ui-monospace,monospace' }
 const fmt = { woff2: 'woff2', woff: 'woff', otf: 'opentype', ttf: 'truetype' }
@@ -46,7 +47,7 @@ export function resolveFonts(theme) {
         if (!fs.existsSync(abs)) { if (!f.optional) console.warn(`font ${name}: ${abs} missing, falling back`); continue }
         const rel = 'fonts/' + f.file.split('/').pop()
         files.push({ rel, abs })
-        faces.push(`@font-face{font-family:"${name}";src:url(/static/${rel}) format("${fmt[rel.split('.').pop()]}");font-weight:${f.weight};font-style:${f.style ?? 'normal'};font-display:swap${f.range ? ';unicode-range:' + f.range : ''}}`)
+        faces.push(`@font-face{font-family:"${name}";src:url(/static/${rel}) format("${fmt[rel.split('.').pop()]}");font-weight:${f.weight};font-style:${f.style ?? 'normal'};font-display:swap${f.range ? ';unicode-range:' + f.range : ''}${f.adjust ? ';size-adjust:' + f.adjust : ''}}`)
       }
     }
   }

@@ -13,8 +13,9 @@ mark{background:var(--textHighlight);color:inherit;padding:0 .1em}
 hr{border:0;border-top:1px solid var(--lightgray);margin:2rem 0}
 img,video,iframe{max-width:100%;height:auto}
 img{display:block;margin:1rem auto}
-img[alt~=left]{float:left;margin:.3rem 1rem .5rem 0}img[alt~=right]{float:right;margin:.3rem 0 .5rem 1rem}
-img[alt~=sm]{width:30%}img[alt~=md]{width:50%}img[alt~=lg]{width:80%}
+/* captions: an italic line right after an image */
+img+em{display:block;text-align:center;font-size:.9em}
+iframe+p{display:block;text-align:center;font-size:.9em}
 iframe.pdf{width:100%;height:80vh;border:1px solid var(--lightgray)}
 .page{display:grid;grid-template-columns:minmax(14rem,19rem) minmax(0,1fr) minmax(0,17rem);gap:2rem;max-width:100rem;margin:0 auto;padding:0 1.5rem}
 .sidebar{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:1.5rem 0}
@@ -140,3 +141,39 @@ body{padding-bottom:0}
   .article-title{font-size:2rem}.title-row{flex-direction:column}.copy-menu{left:0;right:auto;min-width:16rem}
   .foot-inner{grid-template-columns:1fr}
 }
+
+#theme,#reader{display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap}
+#theme svg,#reader svg{flex:none}
+#theme .to-light{display:none}[data-theme=dark] #theme .to-dark{display:none}[data-theme=dark] #theme .to-light{display:inline-flex;align-items:center;gap:.4rem}
+#theme .to-dark{display:inline-flex;align-items:center;gap:.4rem}
+.sidebar.left .tools{flex-wrap:wrap}.sidebar.left .search-btn{flex:1 1 100%}
+body.reader #reader{background:var(--highlight);border-color:var(--secondary)}
+
+/* headings never smaller than body text, including h5/h6 which legal pages use for section labels */
+article h1{font-size:2em}article h2{font-size:1.6em}article h3{font-size:1.35em}article h4{font-size:1.2em}article h5{font-size:1.1em}article h6{font-size:1.05em}
+article h5,article h6{font-weight:700;margin:1.4rem 0 .5rem}
+
+/* original list markers on top of a standard Markdown list */
+ol.xl>li{list-style:none;padding-left:3.2em;margin:.35rem 0;text-indent:-3.2em}
+ol.xl>li>*{text-indent:0}
+ol.xl>li>p:first-child{text-indent:-3.2em}
+ol.xl{padding-left:0}ol.xl ol.xl{padding-left:1.6rem}
+/* document information */
+.docinfo{margin:0 0 1.4rem;border:1px solid var(--lightgray);border-radius:10px;background:var(--searchBackground);font-size:.9rem}
+.docinfo summary{cursor:pointer;padding:.55rem .9rem;font-weight:600;color:var(--dark)}
+.docinfo dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.4rem 1.2rem;margin:0;padding:.2rem .9rem .8rem}
+.docinfo dt{color:var(--gray);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}.docinfo dd{margin:0;overflow-wrap:anywhere}
+
+/* image flags in the alt text (carried over from the previous site): left, right, sm, md, lg, centre, left-right, grid */
+article img[alt*="left"]{float:left;clear:left;margin:4px 1rem 4px 0}
+article img[alt*="right"]{float:right;clear:right;margin:4px 0 4px 1rem}
+article img[alt*="left sm"]{width:max(200px,20%)}article img[alt*="right sm"]{width:max(200px,20%)}
+article img[alt*="left md"]{width:max(400px,40%)}article img[alt*="right md"]{width:max(400px,40%)}
+article img[alt*="left lg"]{width:max(600px,60%)}article img[alt*="right lg"]{width:max(600px,60%)}
+article img[alt*="left-right"]{float:left;clear:left;margin-right:1rem;width:auto}
+article img[alt*="left-right"]:last-child{float:right;clear:right;margin:4px 0 4px 1rem}
+article img[alt*="center sm"],article img[alt*="centre sm"]{width:max(300px,30%)}
+article img[alt*="center md"],article img[alt*="centre md"]{width:max(500px,50%)}
+article img[alt*="center lg"],article img[alt*="centre lg"]{width:max(700px,70%)}
+article img[alt*="grid"]{max-height:30vh;display:inline-block}
+@media (max-width:800px){article img[alt*="left"],article img[alt*="right"]{float:none;width:auto;max-width:100%;margin:1rem auto}}

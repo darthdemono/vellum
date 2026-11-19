@@ -55,7 +55,8 @@ export async function ogRender(site, jobs, cache, { chunk = 100, par = 3 } = {})
 
 export function iconSvg(site) {
   const { bg, fg, text } = site.icon, fam = site.icon.fontFamily || [].concat(site.theme.fonts.header)[0]
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect width="512" height="512" rx="${site.icon.round ?? 96}" fill="${bg}"/><text x="256" y="360" font-size="300" font-weight="700" text-anchor="middle" fill="${fg}" font-family="${esc(fam)}, 'Noto Serif Bengali', 'Noto Serif', serif">${esc(text)}</text></svg>`
+  const dk = site.icon.dark ?? { bg: fg, fg: bg } // dark browser chrome: invert so the icon stays visible
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><style>.b{fill:${bg}}.t{fill:${fg}}@media (prefers-color-scheme:dark){.b{fill:${dk.bg}}.t{fill:${dk.fg}}}</style><rect class="b" width="512" height="512" rx="${site.icon.round ?? 96}"/><text class="t" x="256" y="360" font-size="300" font-weight="700" text-anchor="middle" font-family="${esc(fam)}, 'Noto Serif Bengali', 'Noto Serif', serif">${esc(text)}</text></svg>`
 }
 export const iconPng = (site, px) =>
   new Resvg(iconSvg(site), { font: fontOpts(site), fitTo: { mode: 'width', value: px } }).render().asPng()

@@ -29,6 +29,11 @@
   const bar = $('#progress')
   if (bar) addEventListener('scroll', () => { const h = document.documentElement; bar.style.transform = 'scaleX(' + (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight)) + ')' }, { passive: true })
 
+  // hover/touch prefetch: internal pages open almost instantly without a client router
+  const pre = new Set()
+  const prefetch = (e) => { const a = e.target.closest?.('a.internal,.explorer a,.backlinks a,.page-list a,.crumbs a'); if (!a || a.origin !== location.origin || pre.has(a.pathname)) return; pre.add(a.pathname); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = a.pathname; document.head.append(l) }
+  document.addEventListener('mouseover', prefetch, { passive: true }); document.addEventListener('touchstart', prefetch, { passive: true })
+
   // heading anchors and code copy buttons
   $$('article h2[id],article h3[id],article h4[id]').forEach((h) => { const a = document.createElement('a'); a.className = 'anchor'; a.href = '#' + h.id; a.textContent = '#'; a.setAttribute('aria-label', 'Link to this section'); h.append(a) })
   $$('article pre:not(.mermaid-src)').forEach((pre) => {
@@ -47,22 +52,25 @@
   const run = (q) => {
     const out = $('ul', dlg); out.textContent = ''
     q = q.trim().toLowerCase(); if (!q || !idx) return
+    const tagOnly = q.startsWith('#'); if (tagOnly) q = q.slice(1)
+    if (!q) return
     const terms = q.split(/\s+/)
     const hits = []
     for (const p of idx) {
       const t = p.t.toLowerCase(), x = (p.x || '').toLowerCase(), g = (p.g || []).join(' ').toLowerCase()
       let s = 0
+      if (tagOnly) { if (g.includes(q)) hits.push([5, p]); continue }
       for (const w of terms) { const a = t.includes(w) ? (t.startsWith(w) ? 12 : 8) : 0, b = g.includes(w) ? 4 : 0, c = x.includes(w) ? 1 : 0; if (!a && !b && !c) { s = 0; break } s += a + b + c }
       if (s) hits.push([s, p])
     }
     hits.sort((a, b) => b[0] - a[0]).slice(0, 12).forEach(([, p], i) => {
       const li = document.createElement('li'), a = document.createElement('a'), sm = document.createElement('small')
-      a.href = p.u; a.textContent = p.t; sm.textContent = (p.x || '').slice(0, 110); if (i === 0) a.className = 'sel'
+      a.href = p.u; a.textContent = p.t; const xx = p.x || '', at = Math.max(0, xx.toLowerCase().indexOf(terms[0])); sm.textContent = (at > 40 ? '… ' : '') + xx.slice(Math.max(0, at - 40), at + 110); if (i === 0) a.className = 'sel'
       a.append(sm); li.append(a); out.append(li)
     })
     sel = 0
   }
-  $('.search-btn')?.addEventListener('click', open)
+  $$('.search-btn').forEach((b) => b.addEventListener('click', open))
   $('input', dlg)?.addEventListener('input', (e) => run(e.target.value))
   dlg?.addEventListener('click', (e) => { if (e.target === dlg) close() })
   addEventListener('keydown', (e) => {
