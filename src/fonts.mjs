@@ -18,6 +18,9 @@ const fs400 = (pkg, name, extra = {}) => [
 // size-adjust: Bengali glyphs sit smaller than Latin ones at the same font-size, so the Bengali faces are scaled up
 const bn = (pkg, name, adjust) => [400, 700].map((weight) => ({ dir: () => fsrc(pkg), file: `${name}-bengali-${weight}-normal.woff2`, weight, range: BN, adjust }))
 
+// one face per script, fetched only on pages that use it (unicode-range)
+const script = (pkg, name, range) => [400, 700].map((weight) => ({ dir: () => fsrc(pkg), file: `${name}-${weight}-normal.woff2`, weight, range }))
+
 export const PRESETS = {
   'Adobe Garamond Pro': [{ dir: () => LOCAL, file: 'adobe-garamond-pro/AGaramondPro-Regular.woff', weight: 400 }],
   'Verdana Pro': [{ dir: () => LOCAL, file: 'verdana-pro/VerdanaPro-Regular.woff', weight: 400 }],
@@ -28,6 +31,14 @@ export const PRESETS = {
   'Noto Serif': fs400('noto-serif', 'noto-serif'),
   'Noto Sans': fs400('noto-sans', 'noto-sans'),
   'Noto Serif Bengali': bn('noto-serif-bengali', 'noto-serif-bengali', '112%'),
+  'Noto Sans Devanagari': script('noto-sans-devanagari', 'noto-sans-devanagari-devanagari', 'U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20B9,U+25CC,U+A830-A839,U+A8E0-A8FF'),
+  'Noto Sans Telugu': script('noto-sans-telugu', 'noto-sans-telugu-telugu', 'U+0C00-0C7F,U+200C-200D'),
+  'Noto Sans Kannada': script('noto-sans-kannada', 'noto-sans-kannada-kannada', 'U+0C80-0CFF,U+200C-200D'),
+  'Noto Sans Tamil': script('noto-sans-tamil', 'noto-sans-tamil-tamil', 'U+0B80-0BFF,U+200C-200D'),
+  'Noto Sans Gujarati': script('noto-sans-gujarati', 'noto-sans-gujarati-gujarati', 'U+0A80-0AFF,U+200C-200D'),
+  'Noto Sans Oriya': script('noto-sans-oriya', 'noto-sans-oriya-oriya', 'U+0B00-0B7F,U+200C-200D'),
+  'Noto Sans Malayalam': script('noto-sans-malayalam', 'noto-sans-malayalam-malayalam', 'U+0D00-0D7F,U+200C-200D'),
+  'Noto Naskh Arabic': script('noto-naskh-arabic', 'noto-naskh-arabic-arabic', 'U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF'),
   'Noto Sans Bengali': bn('noto-sans-bengali', 'noto-sans-bengali', '106%'),
 }
 const GENERIC = { header: 'Georgia,serif', body: 'system-ui,sans-serif', code: 'ui-monospace,monospace' }
