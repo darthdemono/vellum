@@ -27,9 +27,9 @@ test('math and footnotes', () => {
 })
 test('original list markers from the scraper comment', () => {
   const h = r('1. <!--n:(ক)--> one\n2. <!--n:(খ)--> two\n   1. <!--n:(১)--> nested\n')
-  assert.match(h, /<ol class="xl">/)
-  assert.match(h, /<span class="lm">\(ক\)<\/span> one/)
-  assert.match(h, /<span class="lm">\(১\)<\/span> nested/)
+  assert.match(h, /<ol class="xl xn">/)
+  assert.match(h, /<span class="lm">\(ক\)<\/span><span class="lt">one<\/span>/)
+  assert.match(h, /<span class="lm">\(১\)<\/span><span class="lt">nested<\/span>/)
   assert.doesNotMatch(h, /<!--/)
 })
 test('manual Footnotes heading is dropped, one section remains', () => {

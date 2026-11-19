@@ -20,13 +20,13 @@ export default function numbering(md) {
       open.level = t[i].level; inl.level = t[i].level + 1; close.level = t[i].level
       open.map = inl.map = t[i].map; open.block = inl.block = close.block = true
       open.hidden = close.hidden = true // legal lists are tight
-      inl.content = `<span class="lm">${esc(m[1])}</span> ${m[2]}`
+      inl.content = `<span class="lm">${esc(m[1])}</span><span class="lt">${m[2]}</span>`
       inl.children = []
       t.splice(i, 1, open, inl, close)
       t[k].attrJoin('class', 'xli')
       let j = k - 1
       while (j >= 0 && !(t[j].type === 'ordered_list_open' && t[j].level === t[k].level - 1)) j--
-      if (j >= 0) t[j].attrSet('class', 'xl')
+      if (j >= 0) t[j].attrSet('class', 'xl xn')
       i += 2
     }
   })

@@ -177,3 +177,12 @@ article img[alt*="center md"],article img[alt*="centre md"]{width:max(500px,50%)
 article img[alt*="center lg"],article img[alt*="centre lg"]{width:max(700px,70%)}
 article img[alt*="grid"]{max-height:30vh;display:inline-block}
 @media (max-width:800px){article img[alt*="left"],article img[alt*="right"]{float:none;width:auto;max-width:100%;margin:1rem auto}}
+
+/* original-marker lists: one grid per list, so the text sits right after the marker and siblings line up */
+ol.xn{display:grid;grid-template-columns:max-content minmax(0,1fr);column-gap:.55em;row-gap:.3rem;padding-left:0;margin:.8rem 0;list-style:none}
+ol.xn>li{display:contents;padding:0;margin:0;text-indent:0}
+ol.xn>li>*{grid-column:2;text-indent:0;margin-top:0}
+ol.xn>li>.lm{grid-column:1;white-space:nowrap;min-width:0;margin:0;color:var(--gray);font-weight:600;font-variant-numeric:tabular-nums}
+ol.xn>li>.lt{grid-column:2}
+ol.xn ol.xn{padding-left:0;margin:.3rem 0}
+ol.xn>li>p:first-child{text-indent:0}
