@@ -26,7 +26,7 @@ export default function numbering(md) {
       t[k].attrJoin('class', 'xli')
       let j = k - 1
       while (j >= 0 && !(t[j].type === 'ordered_list_open' && t[j].level === t[k].level - 1)) j--
-      if (j >= 0) t[j].attrSet('class', /^[A-Za-z]{3,}ly$/.test(m[1]) ? 'xl xn xw' : 'xl xn') // xw: adverb markers (Firstly, Secondly) are ragged, not a column
+      if (j >= 0) t[j].attrSet('class', 'xl xn')
       i += 2
     }
   })
