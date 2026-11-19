@@ -1,12 +1,12 @@
 import { hrefOf } from './util.mjs'
 
 /** Per-page markdown: raw frontmatter, H1, body, with a "## References" heading restored before footnote definitions. */
-export function pageLlms(p) {
+export function pageLlms(p, label = 'References') {
   let body = p.body.replace(/\r\n/g, '\n').trim()
   const fn = body.match(/(?:^|\n)\[\^[^\]]+\]:/)
-  if (fn && !/(?:^|\n)#{1,6}\s+References\s*(?:\n|$)/.test(body)) {
+  if (fn && !/(?:^|\n)#{1,6}\s+(?:References|Footnotes?)\s*(?:\n|$)/.test(body)) {
     const i = fn.index + (fn[0].startsWith('\n') ? 1 : 0)
-    body = body.slice(0, i).replace(/\n+$/, '') + '\n\n## References\n\n' + body.slice(i)
+    body = body.slice(0, i).replace(/\n+$/, '') + '\n\n## ' + label + '\n\n' + body.slice(i)
   }
   return (p.fmRaw ? p.fmRaw + '\n' : '') + '# ' + p.title + '\n' + body + '\n'
 }
