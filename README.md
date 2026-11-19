@@ -17,8 +17,8 @@ means a dev server permanently swapping, or a rebuild that can run the box out o
 ## Features
 
 Obsidian syntax: `[[wikilinks]]` (shortest-path, aliases, headings, `^block` ids), `![[embeds]]`, callouts (foldable), `==highlight==`, `#tags`, `%%comments%%`, footnotes, tables, task lists.
-Math (KaTeX at build time), code (Shiki, light and dark), mermaid (loaded only on pages that use it).
-Pages: breadcrumbs, table of contents with scroll spy, backlinks, tag pages, folder pages, explorer, full-text search (`/` or Ctrl+K), link previews, dark mode, reader mode, 404, alias redirects.
+Math (KaTeX at build time), code (Shiki, light and dark), mermaid (self-hosted, loaded only on pages that use it).
+Pages: copy-page menu (Markdown, ChatGPT, Claude), graph view, breadcrumbs, table of contents with scroll spy, backlinks, tag pages, folder pages, explorer, full-text search (`/` or Ctrl+K), link previews, dark mode, reader mode, 404, alias redirects.
 Machine-readable: `<page>/llms.txt` (the note's own Markdown with its front matter), `/llms.txt` index, `/llms-full.txt`, sitemap, RSS, `robots.txt`.
 Open Graph PNG per page and site icons (SVG, ICO, PNG, web manifest) generated from the site config.
 
@@ -71,7 +71,7 @@ A page with a `source_url` in its front matter shows an "Official source" link.
 
 ## Limits
 
-No client-side routing (every link is a normal page load), no comments, and the graph view is not implemented. Search is a linear scan of one JSON file; sites over a few hundred pages index titles, tags and descriptions only.
+No client-side routing (every link is a normal page load) and no comments. Search is a linear scan of one JSON file; sites over a few hundred pages index titles, tags and descriptions only.
 
 ## Licence
 

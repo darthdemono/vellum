@@ -5,9 +5,22 @@
   "type": "module",
   "license": "Apache-2.0",
   "author": "Jubair Hasan",
-  "repository": { "type": "git", "url": "git+https://github.com/darthdemono/vellum.git" },
-  "keywords": ["static-site-generator", "obsidian", "markdown", "llms-txt"],
-  "files": ["bin", "src", "assets", "examples"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darthdemono/vellum.git"
+  },
+  "keywords": [
+    "static-site-generator",
+    "obsidian",
+    "markdown",
+    "llms-txt"
+  ],
+  "files": [
+    "bin",
+    "src",
+    "assets",
+    "examples"
+  ],
   "bin": {
     "vellum": "bin/vellum.mjs"
   },
@@ -30,6 +43,7 @@
     "katex": "^0.19.1",
     "markdown-it": "^15.0.3",
     "markdown-it-footnote": "^4.0.0",
+    "mermaid": "^12.3.0",
     "shiki": "^4.6.0",
     "yaml": "^2.9.1"
   }
