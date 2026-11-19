@@ -13,6 +13,8 @@ export function createMarkdown({ resolve, assetUrl, highlight, footnoteLabel = '
     highlight: highlight ? (code, lang) => (lang && lang !== 'mermaid' ? highlight(code, lang) : '') : undefined,
   })
   md.use(footnote).use(extlists, extlist).use(math).use(numbering).use(obsidian, { resolve, assetUrl })
+  // "[^8](১ক)" is a footnote reference followed by text in brackets, not a link: try footnotes before links
+  md.inline.ruler.before('link', 'footnote_ref_first', md.inline.ruler.__rules__.find((r) => r.name === 'footnote_ref').fn)
   md.renderer.rules.footnote_block_open = () => `<hr class="footnotes-sep">\n<section class="footnotes" data-footnotes><h2 id="footnote-label">${esc(footnoteLabel)}</h2>\n<ol class="footnotes-list">\n`
   md.renderer.rules.footnote_anchor = (tokens, idx, options, env, slf) => {
     let id = slf.rules.footnote_anchor_name(tokens, idx, options, env, slf)
@@ -24,13 +26,13 @@ export function createMarkdown({ resolve, assetUrl, highlight, footnoteLabel = '
     let remap = null
     if (normalizeHeadings) {
       const lv = [...new Set(state.tokens.filter((x) => x.type === 'heading_open').map((x) => +x.tag.slice(1)))].sort((a, b) => a - b)
-      const base = lv[0] === 1 ? 1 : 2
-      remap = new Map(lv.map((l, n) => [l, Math.min(6, base + n)]))
+      remap = new Map(lv.map((l, n) => [l, Math.min(6, 2 + n)])) // the page title is the one h1
     }
     for (let i = 0; i < state.tokens.length; i++) {
       const t = state.tokens[i]
       if (t.type !== 'heading_open') continue
       if (remap) { const nl = 'h' + remap.get(+t.tag.slice(1)); t.tag = nl; state.tokens[i + 2].tag = nl }
+      else if (t.tag === 'h1') { t.tag = 'h2'; state.tokens[i + 2].tag = 'h2' } // one h1 per page: the title
       const inl = state.tokens[i + 1]
       // link text counts too: wikilinks are inline HTML (<a>text</a>), so strip the tags and keep the words
       const plain = (s) => s.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&')

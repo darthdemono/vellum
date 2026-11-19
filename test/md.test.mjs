@@ -13,6 +13,9 @@ test('wikilinks, alias, anchor, broken', () => {
   assert.match(r('[[Other Note#^sec-5|s]]'), /href="\/Notes\/Other-Note#\^sec-5"/)
   assert.match(r('[[Missing]]'), /broken/)
 })
+test('a space before the pipe does not break a wikilink', () => {
+  assert.match(r('[[Other Note \\|shown]]'), /href="\/Notes\/Other-Note" class="internal"[^>]*>shown/)
+})
 test('callout, fold, highlight, tag, comment', () => {
   assert.match(r('> [!note] Title\n> body'), /class="callout note"[\s\S]*Title[\s\S]*body/)
   assert.match(r('> [!tip]- Folded\n> x'), /<details class="callout tip"/)
@@ -46,5 +49,19 @@ test('a heading with a wikilink keeps the link text in the contents list', () =>
   const m = createMarkdown({ resolve: (t) => (t === 'canvas.c' ? { slug: 'canvas-c' } : null), assetUrl: () => null })
   m.render('### [[canvas.c]]:\n\ntext\n', env)
   assert.equal(env.toc[0].text, 'canvas.c:')
+})
+test('a footnote followed by (a) is not a link', () => {
+  const h = r('text.[^1](১ক) more\n\n[^1]: note')
+  assert.match(h, /footnote-ref/)
+  assert.doesNotMatch(h, /<a href="১ক"/)
+})
+test('a heading block id becomes an anchor and keeps its slug id', () => {
+  const env = { slugger: new GithubSlugger(), links: new Set(), page: { slug: 'x' } }
+  const h = md.render('##### Section 3: Title ^sec-3\n', env)
+  assert.match(h, /<h5 id="section-3-title"><span id="\^sec-3"><\/span>Section 3: Title<\/h5>/)
+})
+test('a note with its own h1 still ends up with one h1', () => {
+  const h = md.render('# Inner title\n\ntext\n', { slugger: new GithubSlugger(), links: new Set(), page: { slug: 'x' } })
+  assert.doesNotMatch(h, /<h1/); assert.match(h, /<h2 id="inner-title"/)
 })
 test('block id', () => assert.match(r('Para text ^abc-1'), /<p id="\^abc-1">Para text<\/p>/))

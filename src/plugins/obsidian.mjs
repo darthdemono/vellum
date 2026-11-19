@@ -17,7 +17,8 @@ export default function obsidian(md, { resolve, assetUrl, tagBase = '/tags/' }) 
     const m = WIKI.exec(src.slice(pos + (embed ? 1 : 0)))
     if (!m) return false
     if (!silent) {
-      const [raw, target, anchor, alias] = m
+      const [raw, rawTarget, anchor, alias] = m
+      const target = rawTarget.trim() // Obsidian allows "[[Note \|alias]]"
       const env = state.env
       let tok
       if (embed && IMG.test(target)) {
@@ -128,7 +129,12 @@ export default function obsidian(md, { resolve, assetUrl, tagBase = '/tags/' }) 
       const last = t.children?.[t.children.length - 1]
       if (last?.type === 'text') last.content = last.content.replace(/\s*\^[A-Za-z0-9-]+$/, '')
       const open = toks[i - 1]
-      if (open && /_open$/.test(open.type)) open.attrSet('id', '^' + m[1])
+      if (open?.type === 'heading_open') {
+        // the heading's own id is its slug (set later), so the block id goes on an empty anchor inside it
+        const a = new state.Token('html_inline', '', 0)
+        a.content = '<span id="^' + esc(m[1]) + '"></span>'
+        t.children.unshift(a)
+      } else if (open && /_open$/.test(open.type)) open.attrSet('id', '^' + m[1])
     }
   })
 
