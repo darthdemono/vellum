@@ -10,5 +10,6 @@
 - Output is written only when it changed (so rsync sends nothing), stale files are removed, and every text file gets a `.gz` for nginx `gzip_static`.
 - Self-hosted font presets (Adobe Garamond Pro and Verdana Pro from a local folder; EB Garamond, Space Mono, Roboto Mono, Noto Serif and Sans with Bengali from fontsource).
 - **Copy page menu** (copy as Markdown, view as Markdown, ask ChatGPT, ask Claude), **graph view** (local graph in the sidebar, whole-site overlay), self-hosted **mermaid** (loaded only on pages that use it), heading anchors, code copy buttons, reading progress bar, mobile drawer menu and a full-width site footer.
+- Original list markers via `<!--n:(a)-->` comments, a front matter information table (`meta`), a custom home page (`home`), one footnote section with a configurable label, heading level normalisation, all heading levels in the contents list, image flags in alt text (left, right, sm, md, lg, centre, left-right, grid), nested tag pages, tag search (`#tag`) with snippets, hover prefetch, and a clearer theme button.
 - The root page is no longer listed in the page explorer; sites set their base font size with `baseSize`.
 - `deploy` (build then rsync), `serve`, `check` (unresolved wikilinks), and a per-site disclosure notice with an About page.

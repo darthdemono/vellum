@@ -48,6 +48,24 @@ node bin/vellum.mjs deploy examples/site.config.mjs    # build, then rsync (need
 Copy `examples/site.config.mjs` and point `content` at your vault. Keys: `title`, `description`, `baseUrl`, `content`, `ignore`, `customCss`, `icon`, `og.fontFiles`,
 `theme.fonts` / `theme.colors` (light and dark), `explorer`, `search.depth` (`full` or `meta`), `lists`, `footer.links`, `llms.full`, `disclosure`, `deploy`.
 
+### Original list numbering
+
+Scrapers and converters often turn legal numbering into a plain `1. 2. 3.` list. If each item keeps its real marker in an invisible comment,
+vellum shows the real marker and keeps normal Markdown nesting:
+
+```
+1. <!--n:(ক)--> first clause
+   1. <!--n:(১)--> nested clause
+```
+
+Obsidian and other Markdown tools ignore the comment and show `1.`; vellum renders `(ক)` and `(১)`.
+
+### More site options
+
+`home` (a Markdown file used as the home page; the vault's own index moves to `indexSlug`, titled `indexTitle`), `meta: { show: true }` (a table of front matter fields such as the official source),
+`footnoteLabel` (the footnote section heading; a manual `## Footnotes` heading in a note is dropped so there is only one), `normalizeHeadings` (remap h5/h6-only pages to h2, h3),
+`tocDepth`, `baseSize`, `author`.
+
 ### Fonts
 
 Font presets are self-hosted. EB Garamond, Space Mono, Roboto Mono, Noto Serif and Noto Sans (with Bengali) come from the `@fontsource` packages.
