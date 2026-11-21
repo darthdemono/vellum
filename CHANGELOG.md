@@ -4,6 +4,8 @@
 
 ### Added
 
+- **Download vault** button on the home page: a zip of the vault's original Markdown files and folders, built with the site (`<name>-vault.zip`), replaces "Copy site". Other pages keep "Copy page".
+- **Graph view** redrawn: zoom (wheel), pan (drag the background), double-click to refit, lighter edges, hovered node's links highlighted, labels placed without overlapping.
 - First version. Builds an Obsidian vault into static files: wikilinks, embeds, callouts, highlights, tags, block ids, footnotes, KaTeX math, Shiki code, mermaid, backlinks, table of contents, explorer, search, link previews, dark mode, reader mode.
 - **Extended list markers** kept as literal text: `(1)`, `(1A)`, `(13AA)`, `(a)`, `(iv)`, `1.1.`, `1.A.`, `১)`, `ক)`, `(১ক)`, nested by indentation.
 - Open Graph images (PNG, cached, rendered in short-lived child processes), site icons (SVG, ICO, PNG, web manifest), `llms.txt` per page and per site, `llms-full.txt`, sitemap, RSS, robots.txt.

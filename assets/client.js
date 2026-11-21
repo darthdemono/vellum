@@ -166,46 +166,72 @@
       return { nodes: ids.map((id) => ({ slug: d.n[id][0], title: d.n[id][1] })), edges: d.e.filter(([a, b]) => m.has(a) && m.has(b)).map(([a, b]) => [m.get(a), m.get(b)]), cur: m.get(ci) }
     }
     const colors = () => { const s = getComputedStyle(root), g = (k) => s.getPropertyValue(k).trim(); return { sec: g('--secondary'), ter: g('--tertiary'), gray: g('--gray'), line: g('--lightgray'), txt: g('--darkgray') } }
-    const graph = (canvas, g, labelAll) => {
+    const graph = (canvas, g) => {
       const ctx = canvas.getContext('2d'), dpr = devicePixelRatio || 1; let W, H
       const fit = () => { const r = canvas.getBoundingClientRect(); W = r.width; H = r.height; canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0) }; fit()
-      const ns = g.nodes.map((n, i) => ({ ...n, i, x: W / 2 + (Math.random() - 0.5) * W * 0.5, y: H / 2 + (Math.random() - 0.5) * H * 0.5, vx: 0, vy: 0, deg: 0 }))
+      const side = Math.max(220, Math.sqrt(g.nodes.length * 2600)), k = 40
+      const ns = g.nodes.map((n, i) => ({ ...n, i, x: (Math.random() - 0.5) * side, y: (Math.random() - 0.5) * side, vx: 0, vy: 0, deg: 0 }))
       const es = g.edges.map(([a, b]) => ({ a: ns[a], b: ns[b] })); es.forEach((e) => { e.a.deg++; e.b.deg++ })
-      const k = Math.max(18, Math.sqrt((W * H) / ns.length) * 0.55); let alpha = 1, hover = null, drag = null, moved = false, raf = 0
+      const order = [...ns].sort((a, b) => (b.i === g.cur) - (a.i === g.cur) || b.deg - a.deg)
+      const v = { s: 1, x: 0, y: 0 }; let alpha = 1, hover = null, drag = null, pan = null, moved = false, raf = 0
       const step = () => {
-        for (let i = 0; i < ns.length; i++) { const a = ns[i]; for (let j = i + 1; j < ns.length; j++) { const b = ns[j]; const dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01; if (d2 > k * k * 25) continue; const d = Math.sqrt(d2), f = ((k * k) / d2) * alpha * 1.2; a.vx += (dx / d) * f; a.vy += (dy / d) * f; b.vx -= (dx / d) * f; b.vy -= (dy / d) * f } }
+        for (let i = 0; i < ns.length; i++) { const a = ns[i]; for (let j = i + 1; j < ns.length; j++) { const b = ns[j]; const dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01; if (d2 > k * k * 36) continue; const d = Math.sqrt(d2), f = ((k * k) / d2) * alpha * 1.2; a.vx += (dx / d) * f; a.vy += (dy / d) * f; b.vx -= (dx / d) * f; b.vy -= (dy / d) * f } }
         for (const e of es) { const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y, d = Math.sqrt(dx * dx + dy * dy) || 1, f = (d - k) * 0.04 * alpha; e.a.vx += (dx / d) * f; e.a.vy += (dy / d) * f; e.b.vx -= (dx / d) * f; e.b.vy -= (dy / d) * f }
-        for (const n of ns) { n.vx += (W / 2 - n.x) * 0.012 * alpha; n.vy += (H / 2 - n.y) * 0.012 * alpha; if (n === drag) { n.vx = n.vy = 0; continue } n.vx *= 0.6; n.vy *= 0.6; n.x = Math.min(W - 8, Math.max(8, n.x + n.vx)); n.y = Math.min(H - 8, Math.max(8, n.y + n.vy)) }
+        for (const n of ns) { n.vx -= n.x * 0.012 * alpha; n.vy -= n.y * 0.012 * alpha; if (n === drag) { n.vx = n.vy = 0; continue } n.vx *= 0.6; n.vy *= 0.6; n.x += n.vx; n.y += n.vy }
         alpha *= 0.985
       }
+      const home = () => {
+        let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9
+        for (const n of ns) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y) }
+        v.s = Math.min(W / (x1 - x0 + 120), H / (y1 - y0 + 120), 2.2); v.x = W / 2 - ((x0 + x1) / 2) * v.s; v.y = H / 2 - ((y0 + y1) / 2) * v.s
+      }
+      const sx = (n) => n.x * v.s + v.x, sy = (n) => n.y * v.s + v.y
+      const rad = (n) => (n.i === g.cur ? 6 : 3) + Math.min(5, Math.sqrt(n.deg))
       const draw = () => {
-        const c = colors(); ctx.clearRect(0, 0, W, H); ctx.lineWidth = 1; ctx.strokeStyle = c.line
+        const c = colors(); ctx.clearRect(0, 0, W, H)
         const nb = new Set(); if (hover) es.forEach((e) => { if (e.a === hover) nb.add(e.b); if (e.b === hover) nb.add(e.a) })
-        for (const e of es) { ctx.globalAlpha = hover && e.a !== hover && e.b !== hover ? 0.2 : 1; ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke() }
-        ctx.globalAlpha = 1; ctx.font = '11px system-ui,sans-serif'; ctx.textAlign = 'center'
-        for (const n of ns) { const cur = n.i === g.cur, r = (cur ? 6 : 3) + Math.min(5, Math.sqrt(n.deg)); ctx.globalAlpha = hover && n !== hover && !nb.has(n) ? 0.3 : 1; ctx.fillStyle = cur ? c.sec : n === hover ? c.ter : c.gray; ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 6.2832); ctx.fill()
-          if (cur || n === hover || (labelAll && n.deg > 3)) { ctx.fillStyle = c.txt; const t = n.title.length > 28 ? n.title.slice(0, 27) + '…' : n.title; ctx.fillText(t, Math.min(W - 60, Math.max(60, n.x)), n.y - r - 4) } }
-        ctx.globalAlpha = 1
+        ctx.lineWidth = 1; ctx.strokeStyle = c.line; ctx.globalAlpha = hover ? 0.25 : 0.55; ctx.beginPath()
+        for (const e of es) { if (hover && (e.a === hover || e.b === hover)) continue; ctx.moveTo(sx(e.a), sy(e.a)); ctx.lineTo(sx(e.b), sy(e.b)) } ctx.stroke()
+        if (hover) { ctx.globalAlpha = 1; ctx.strokeStyle = c.ter; ctx.lineWidth = 1.5; ctx.beginPath(); for (const e of es) if (e.a === hover || e.b === hover) { ctx.moveTo(sx(e.a), sy(e.a)); ctx.lineTo(sx(e.b), sy(e.b)) } ctx.stroke() }
+        for (const n of ns) { const cur = n.i === g.cur; ctx.globalAlpha = hover && n !== hover && !nb.has(n) ? 0.3 : 1; ctx.fillStyle = cur ? c.sec : n === hover || nb.has(n) ? c.ter : c.gray; ctx.beginPath(); ctx.arc(sx(n), sy(n), rad(n), 0, 6.2832); ctx.fill() }
+        // labels: current, hovered and its neighbours first, then hubs; a label that would overlap one already placed is skipped, zooming in reveals more
+        ctx.globalAlpha = 1; ctx.font = '12px system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.lineWidth = 4
+        const halo = getComputedStyle(root).getPropertyValue('--light').trim(), placed = []
+        const pri = hover ? [hover, ...nb, ...order] : order
+        for (const n of pri) {
+          const x = sx(n), y = sy(n); if (x < -50 || y < -20 || x > W + 50 || y > H + 20) continue
+          const t = n.title.length > 30 ? n.title.slice(0, 29) + '…' : n.title, w = ctx.measureText(t).width + 6, ty = y - rad(n) - 5
+          const r = [x - w / 2, ty - 12, x + w / 2, ty + 3]
+          if (placed.some((p) => r[0] < p[2] && r[2] > p[0] && r[1] < p[3] && r[3] > p[1]) && n !== hover && n.i !== g.cur) continue
+          placed.push(r); ctx.strokeStyle = halo; ctx.strokeText(t, x, ty); ctx.fillStyle = c.txt; ctx.fillText(t, x, ty)
+        }
       }
       const loop = () => { raf = 0; step(); draw(); if (alpha > 0.01 || drag) raf = requestAnimationFrame(loop) }
       const wake = (a) => { alpha = Math.max(alpha, a); if (!raf) raf = requestAnimationFrame(loop) }
-      const at = (e) => { const r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; let best = null, bd = 144; for (const n of ns) { const d = (n.x - x) ** 2 + (n.y - y) ** 2; if (d < bd) { bd = d; best = n } } return [best, x, y] }
-      canvas.onpointermove = (e) => { const [n, x, y] = at(e); if (drag) { drag.x = x; drag.y = y; moved = true; wake(0.3) } else if (n !== hover) { hover = n; canvas.style.cursor = n ? 'pointer' : 'default'; draw() } }
-      canvas.onpointerdown = (e) => { const [n] = at(e); if (n) { drag = n; moved = false; canvas.setPointerCapture(e.pointerId); wake(0.3) } }
-      canvas.onpointerup = () => { const d = drag; drag = null; if (d && !moved) location.href = href(d.slug) }
-      canvas.onpointerleave = () => { hover = null; draw() }
-      for (let i = 0; i < 120; i++) step()
-      draw(); wake(0.2)
-      return { fit, stop: () => cancelAnimationFrame(raf), redraw: draw }
+      const pt = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top] }
+      const at = (x, y) => { let best = null, bd = 144; for (const n of ns) { const d = (sx(n) - x) ** 2 + (sy(n) - y) ** 2; if (d < bd) { bd = d; best = n } } return best }
+      canvas.onpointermove = (e) => { const [x, y] = pt(e)
+        if (drag) { drag.x = (x - v.x) / v.s; drag.y = (y - v.y) / v.s; moved = true; wake(0.3) }
+        else if (pan) { v.x = pan.vx + x - pan.x; v.y = pan.vy + y - pan.y; moved = true; draw() }
+        else { const n = at(x, y); if (n !== hover) { hover = n; canvas.style.cursor = n ? 'pointer' : 'grab'; draw() } } }
+      canvas.onpointerdown = (e) => { const [x, y] = pt(e), n = at(x, y); moved = false; canvas.setPointerCapture(e.pointerId); if (n) { drag = n; wake(0.3) } else pan = { x, y, vx: v.x, vy: v.y } }
+      canvas.onpointerup = () => { const d = drag; drag = null; pan = null; if (d && !moved) location.href = href(d.slug) }
+      canvas.onpointerleave = () => { if (!drag && !pan) { hover = null; draw() } }
+      canvas.onwheel = (e) => { e.preventDefault(); const [x, y] = pt(e), f = Math.exp(-e.deltaY * 0.0015), s2 = Math.min(6, Math.max(0.15, v.s * f)); v.x = x - ((x - v.x) / v.s) * s2; v.y = y - ((y - v.y) / v.s) * s2; v.s = s2; draw() }
+      canvas.ondblclick = () => { home(); draw() }
+      canvas.style.cursor = 'grab'
+      for (let i = 0; i < 150; i++) step()
+      home(); draw(); wake(0.2)
+      return { fit: () => { fit(); home(); draw() }, stop: () => cancelAnimationFrame(raf), redraw: draw }
     }
     const cur = gc.dataset.slug, big = $('#graph-big'), modal = $('#graph-modal')
-    const io = new IntersectionObserver((es, o) => { if (!es.some((e) => e.isIntersecting)) return; o.disconnect(); load().then((d) => { const g = sub(d, cur, d.n.length > 300 ? 1 : 2, 60); if (g && g.nodes.length > 1) graph(gc, g, false); else gc.closest('.graph-box').hidden = true }) })
+    const io = new IntersectionObserver((es, o) => { if (!es.some((e) => e.isIntersecting)) return; o.disconnect(); load().then((d) => { const g = sub(d, cur, d.n.length > 300 ? 1 : 2, 30); if (g && g.nodes.length > 1) graph(gc, g); else gc.closest('.graph-box').hidden = true }) })
     io.observe(gc)
     let gb = null
     $('#graph-full')?.addEventListener('click', async () => {
       modal.hidden = false; const d = await load()
       const g = d.n.length > 400 ? sub(d, cur, 2, 300) ?? sub(d, 'index', 1, 300) : { nodes: d.n.map(([slug, title]) => ({ slug, title })), edges: d.e, cur: d.n.findIndex((n) => n[0] === cur) }
-      gb?.stop(); gb = graph(big, g, true)
+      gb?.stop(); gb = graph(big, g)
     })
     const closeG = () => { modal.hidden = true; gb?.stop(); gb = null }
     $('#graph-close')?.addEventListener('click', closeG); modal?.addEventListener('click', (e) => { if (e.target === modal) closeG() })
