@@ -30,3 +30,23 @@ test('example vault builds: pages, llms, og, icons, lists, gzip, no stale files'
   assert.equal(r2.stats.written, 0, 'second build rewrites nothing')
   assert.ok(!fs.existsSync(path.join(site.out, 'stale.html')))
 })
+
+test('home page offers the vault as a zip of the original Markdown, other pages keep Copy page', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'vellum-zip-'))
+  const site = await loadSite(new URL('../examples/site.config.mjs', import.meta.url).pathname)
+  site.out = path.join(tmp, 'out'); site.cache = path.join(tmp, 'cache')
+  await build(site, { log() {} })
+  const zip = path.join(site.out, 'example-vault.zip')
+  assert.ok(fs.existsSync(zip))
+  const { execFileSync } = await import('node:child_process')
+  const list = execFileSync('unzip', ['-Z1', zip]).toString().trim().split('\n').sort()
+  assert.ok(list.includes('example/Lists.md') && list.includes('example/Notes/Linking.md'))
+  assert.equal(execFileSync('unzip', ['-p', zip, 'example/Lists.md']).toString(), fs.readFileSync(new URL('../examples/vault/Lists.md', import.meta.url), 'utf8'))
+  const home = fs.readFileSync(path.join(site.out, 'index.html'), 'utf8')
+  assert.match(home, /Download vault \(\.zip\)/)
+  assert.doesNotMatch(home, /Copy site/)
+  assert.match(fs.readFileSync(path.join(site.out, 'Lists.html'), 'utf8'), /Copy page/)
+  const before = fs.statSync(zip).mtimeMs
+  const r2 = await build(site, { log() {} })
+  assert.equal(fs.statSync(zip).mtimeMs, before)
+})

@@ -10,6 +10,7 @@ import { buildTree, cssFor } from './site.mjs'
 import { resolveFonts } from './fonts.mjs'
 import { ogKey, ogRender, iconSvg, iconPng, ico } from './og.mjs'
 import { pageLlms, siteLlms, siteLlmsFull } from './llms.mjs'
+import { makeZip } from './zip.mjs'
 import { Sink, esc, hash, hrefOf, outFileOf, slugSegment } from './util.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -108,7 +109,8 @@ export async function build(site, { log = console.log } = {}) {
   const titleCount = new Map()
   for (const p of all) titleCount.set(p.title, (titleCount.get(p.title) ?? 0) + 1)
   const dupTitles = new Set([...titleCount].filter(([, n]) => n > 1).map(([t]) => t))
-  const ctx = { dupTitles, homeMd: fullOk ? '/llms-full.txt' : '/llms.txt', site, ver, slugs, folders, lazyTree, explorer: (slug) => explorerHtml(tree, slug) }
+  const zipName = site.name + '-vault.zip'
+  const ctx = { dupTitles, homeMd: fullOk ? '/llms-full.txt' : '/llms.txt', vaultZip: '/' + zipName, site, ver, slugs, folders, lazyTree, explorer: (slug) => explorerHtml(tree, slug) }
   const sink = new Sink(site.out, path.join(site.cache, 'manifest.json'))
 
   // 4. emit pages (+ aliases, og, llms)
@@ -144,6 +146,14 @@ export async function build(site, { log = console.log } = {}) {
   }
   if (pages.some((p) => p.hasMermaid)) sink.copy('static/mermaid.min.js', createRequire(import.meta.url).resolve('mermaid/package.json').replace('package.json', 'dist/mermaid.min.js'))
   if (fullOk) sink.write('llms-full.txt', siteLlmsFull(site, pages))
+  {
+    // the vault's own Markdown files, original bytes and folders, for the home page's "Download vault" button
+    // a page the build made itself (the act index) has no file in the vault, so its Markdown is rebuilt from the page
+    const readSource = (p) => { const f = path.join(site.content, p.rel); return fs.existsSync(f) ? fs.readFileSync(f) : Buffer.from((p.fmRaw ? p.fmRaw + '\n' : '') + p.body) }
+    const files = pages.filter((p) => !p.generated && !p.home).map((p) => ({ name: site.name + '/' + p.rel, data: readSource(p), mtime: p.updated }))
+    const key = hash(files.map((f) => f.name + f.mtime.getTime() + f.data.length + hash(f.data.toString('latin1'))).join('|'))
+    if (sink.old[zipName] === key && fs.existsSync(path.join(site.out, zipName))) { sink.now[zipName] = key; sink.stats.skipped++ } else sink.write(zipName, makeZip(files), key)
+  }
   sink.write('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${base}/sitemap.xml\n`)
   sink.write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map((p) => `<url><loc>${esc(base + (p.slug === 'index' ? '/' : encodeURI(hrefOf(p.slug))))}</loc><lastmod>${p.updated.toISOString().slice(0, 10)}</lastmod></url>`).join('\n')}\n</urlset>\n`)
   const recent = [...pages].sort((a, b) => b.date - a.date).slice(0, 30)
