@@ -43,7 +43,7 @@
     fit(); addEventListener('scroll', fit, { passive: true }); addEventListener('resize', fit); addEventListener('load', fit)
   }
   // a list item laid out with display:contents has no box of its own, so the browser cannot scroll to it: scroll to its text
-  const jump = () => { const id = decodeURIComponent(location.hash.slice(1)), el = id && document.getElementById(id); if (el?.matches('li') && getComputedStyle(el).display === 'contents') ($('.lt', el) || el).scrollIntoView({ block: 'center' }) }
+  const jump = () => { let id = ''; try { id = decodeURIComponent(location.hash.slice(1)) } catch {}; const el = id ? document.getElementById(id) : null; if (el?.matches('li') && getComputedStyle(el).display === 'contents') ($('.lt', el) || el).scrollIntoView({ block: 'center' }) }
   jump(); addEventListener('hashchange', jump)
   // clause permalinks: every list item with a block id gets a # link that copies its address
   $$('article li[id^="^"]').forEach((li) => {
