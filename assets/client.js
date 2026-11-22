@@ -9,7 +9,7 @@
   // copy-page menu
   const cp = $('.copy-page')
   if (cp) {
-    const url = location.origin + cp.dataset.md, prompt = 'Read this page and answer questions about it: ' + url
+    const url = location.origin + cp.dataset.md, prompt = 'Read this ' + (cp.dataset.what || 'page') + ' and answer questions about it: ' + url
     $('.ask-chatgpt', cp).href = 'https://chatgpt.com/?hints=search&q=' + encodeURIComponent(prompt)
     $('.ask-claude', cp).href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt)
     $('.copy-main', cp).addEventListener('click', (e) => { e.stopPropagation(); cp.classList.toggle('open') })

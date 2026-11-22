@@ -38,13 +38,15 @@ export function pageHtml(ctx, p) {
   const katex = p.hasMath ? `<link rel="stylesheet" href="/static/katex/katex.min.css">` : ''
   const graph = p.generated ? '' : `<div class="graph-box"><div class="graph-head"><h3>Graph view</h3><button id="graph-full" type="button" aria-label="Open full graph" title="Open full graph">&#10530;</button></div><canvas id="graph" data-slug="${esc(p.slug)}"></canvas></div>`
   const hasMd = p.slug !== 'index' ? !p.generated : false
-  const mdUrl = '/' + p.slug + '/llms.txt'
-  const vaultBtn = p.slug === 'index' && ctx.vaultZip ? `<a class="copy-main dl-vault" href="${esc(ctx.vaultZip)}" download>${ICONS.file}<span>Download vault (.zip)</span></a>` : ''
-  const copyMenu = vaultBtn || !hasMd ? vaultBtn : `<div class="copy-page" data-md="${esc(mdUrl)}"><button class="copy-main" type="button" aria-haspopup="true">${ICONS.copy}<span class="copy-text">Copy page</span>${ICONS.arrow}</button>
-<div class="copy-menu" role="menu"><button type="button" class="mi do-copy">${ICONS.copy}<span>Copy page as Markdown</span></button>
+  const home = p.slug === 'index'
+  const what = home ? 'site' : 'page'
+  const mdUrl = home ? ctx.homeMd : '/' + p.slug + '/llms.txt'
+  const vaultItem = home && ctx.vaultZip ? `<a class="mi dl-vault" href="${esc(ctx.vaultZip)}" download>${ICONS.file}<span>Download vault (.zip)</span></a>\n` : ''
+  const copyMenu = !(home || hasMd) ? '' : `<div class="copy-page" data-md="${esc(mdUrl)}" data-what="${what}"><button class="copy-main" type="button" aria-haspopup="true">${ICONS.copy}<span class="copy-text">Copy page</span>${ICONS.arrow}</button>
+<div class="copy-menu" role="menu">${vaultItem}<button type="button" class="mi do-copy">${ICONS.copy}<span>Copy page as Markdown</span></button>
 <a class="mi" href="${esc(mdUrl)}" target="_blank" rel="noopener">${ICONS.file}<span>View as Markdown <i>&#8599;</i></span></a>
-<a class="mi ask-chatgpt" href="#" target="_blank" rel="noopener">${ICONS.chatgpt}<span>Ask ChatGPT about this page <i>&#8599;</i></span></a>
-<a class="mi ask-claude" href="#" target="_blank" rel="noopener">${ICONS.claude}<span>Ask Claude about this page <i>&#8599;</i></span></a></div></div>`
+<a class="mi ask-chatgpt" href="#" target="_blank" rel="noopener">${ICONS.chatgpt}<span>Ask ChatGPT about this ${what} <i>&#8599;</i></span></a>
+<a class="mi ask-claude" href="#" target="_blank" rel="noopener">${ICONS.claude}<span>Ask Claude about this ${what} <i>&#8599;</i></span></a></div></div>`
   return `<!doctype html>
 <html lang="${esc(site.lang || 'en')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>

@@ -45,6 +45,8 @@ test('home page offers the vault as a zip of the original Markdown, other pages 
   const home = fs.readFileSync(path.join(site.out, 'index.html'), 'utf8')
   assert.match(home, /Download vault \(\.zip\)/)
   assert.doesNotMatch(home, /Copy site/)
+  for (const item of ['Copy page as Markdown', 'View as Markdown', 'Ask ChatGPT about this site', 'Ask Claude about this site']) assert.match(home, new RegExp(item))
+  assert.ok(home.indexOf('Download vault') < home.indexOf('Copy page as Markdown'))
   assert.match(fs.readFileSync(path.join(site.out, 'Lists.html'), 'utf8'), /Copy page/)
   const before = fs.statSync(zip).mtimeMs
   const r2 = await build(site, { log() {} })
