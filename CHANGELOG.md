@@ -4,6 +4,9 @@
 
 ### Added
 
+- **Clause permalinks.** A list item that ends in a block id (`^sec-117-1-c`) becomes a link target: the `<li>` gets the id, a `#` link appears beside it on hover and copies its address, the item is highlighted when it is the target, and the page scrolls to it even though the list is laid out with `display: contents`. Links like `[[act-367#^sec-102-3|clause (3) of article 102]]` land on the exact clause.
+- The right sidebar no longer keeps a scrollbar of its own: when it is taller than the window it moves with the page.
+
 - **Download vault** button on the home page: a zip of the vault's original Markdown files and folders, built with the site (`<name>-vault.zip`), replaces "Copy site". On the home page it is the first item of the page menu, above Copy, View, Ask ChatGPT and Ask Claude (those work on the site's `llms` file there). Other pages keep "Copy page".
 - **Graph view** redrawn: zoom (wheel), pan (drag the background), double-click to refit, lighter edges, hovered node's links highlighted, labels placed without overlapping.
 - First version. Builds an Obsidian vault into static files: wikilinks, embeds, callouts, highlights, tags, block ids, footnotes, KaTeX math, Shiki code, mermaid, backlinks, table of contents, explorer, search, link previews, dark mode, reader mode.

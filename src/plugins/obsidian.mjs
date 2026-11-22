@@ -137,7 +137,8 @@ export default function obsidian(md, { resolve, assetUrl, tagBase = '/tags/' }) 
         const a = new state.Token('html_inline', '', 0)
         a.content = '<span id="^' + esc(m[1]) + '"></span>'
         t.children.unshift(a)
-      } else if (open && /_open$/.test(open.type)) open.attrSet('id', '^' + m[1])
+      } else if (open?.type === 'paragraph_open' && open.hidden && toks[i - 2]?.type === 'list_item_open') toks[i - 2].attrSet('id', '^' + m[1]) // a tight list item: the id goes on the <li>
+      else if (open && /_open$/.test(open.type)) open.attrSet('id', '^' + m[1])
     }
   })
 

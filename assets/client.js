@@ -36,6 +36,21 @@
 
   // heading anchors and code copy buttons
   $$('article h2[id],article h3[id],article h4[id]').forEach((h) => { const a = document.createElement('a'); a.className = 'anchor'; a.href = '#' + h.id; a.textContent = '#'; a.setAttribute('aria-label', 'Link to this section'); h.append(a) })
+  // a right sidebar taller than the window moves with the page (its whole length spread over the page's) instead of keeping a scrollbar of its own
+  const rs = $('.sidebar.right')
+  if (rs) {
+    const fit = () => { const h = document.documentElement, extra = Math.max(0, rs.offsetHeight - innerHeight); rs.style.top = -(extra * Math.min(1, h.scrollTop / Math.max(1, h.scrollHeight - innerHeight))) + 'px' }
+    fit(); addEventListener('scroll', fit, { passive: true }); addEventListener('resize', fit); addEventListener('load', fit)
+  }
+  // a list item laid out with display:contents has no box of its own, so the browser cannot scroll to it: scroll to its text
+  const jump = () => { const id = decodeURIComponent(location.hash.slice(1)), el = id && document.getElementById(id); if (el?.matches('li') && getComputedStyle(el).display === 'contents') ($('.lt', el) || el).scrollIntoView({ block: 'center' }) }
+  jump(); addEventListener('hashchange', jump)
+  // clause permalinks: every list item with a block id gets a # link that copies its address
+  $$('article li[id^="^"]').forEach((li) => {
+    const a = document.createElement('a'); a.className = 'anchor li-anchor'; a.href = '#' + li.id; a.textContent = '#'; a.setAttribute('aria-label', 'Link to this clause')
+    a.addEventListener('click', () => { try { navigator.clipboard.writeText(location.origin + location.pathname + '#' + li.id) } catch {} })
+    ;($('.lt', li) || li).append(a)
+  })
   $$('article pre:not(.mermaid-src)').forEach((pre) => {
     const b = document.createElement('button'); b.className = 'code-copy'; b.type = 'button'; b.textContent = 'Copy'
     b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(pre.innerText.replace(/Copy$/, '').trimEnd()); b.textContent = 'Copied'; setTimeout(() => (b.textContent = 'Copy'), 1500) } catch {} })
@@ -183,7 +198,7 @@
       const home = () => {
         let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9
         for (const n of ns) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y) }
-        v.s = Math.min(W / (x1 - x0 + 120), H / (y1 - y0 + 120), 2.2); v.x = W / 2 - ((x0 + x1) / 2) * v.s; v.y = H / 2 - ((y0 + y1) / 2) * v.s
+        v.s = Math.min(W / (x1 - x0 + 120), H / (y1 - y0 + 120), 2.2); v.x = W / 2 - ((x0 + x1) / 2) * v.s; v.y = H / 2 - ((y0 + y1) / 2) * v.s; v.min = v.s * 0.5 // zooming out stops at half the fitted size, so the graph never shrinks to a dot
       }
       const sx = (n) => n.x * v.s + v.x, sy = (n) => n.y * v.s + v.y
       const rad = (n) => (n.i === g.cur ? 6 : 3) + Math.min(5, Math.sqrt(n.deg))
@@ -215,9 +230,9 @@
         else if (pan) { v.x = pan.vx + x - pan.x; v.y = pan.vy + y - pan.y; moved = true; draw() }
         else { const n = at(x, y); if (n !== hover) { hover = n; canvas.style.cursor = n ? 'pointer' : 'grab'; draw() } } }
       canvas.onpointerdown = (e) => { const [x, y] = pt(e), n = at(x, y); moved = false; canvas.setPointerCapture(e.pointerId); if (n) { drag = n; wake(0.3) } else pan = { x, y, vx: v.x, vy: v.y } }
-      canvas.onpointerup = () => { const d = drag; drag = null; pan = null; if (d && !moved) location.href = href(d.slug) }
+      canvas.onpointerup = () => { const d = drag; drag = null; pan = null; if (d && !moved) location.href = href(d.slug); else if (!ns.some((n) => sx(n) > 0 && sx(n) < W && sy(n) > 0 && sy(n) < H)) { home(); draw() } } // panned away: bring it back
       canvas.onpointerleave = () => { if (!drag && !pan) { hover = null; draw() } }
-      canvas.onwheel = (e) => { e.preventDefault(); const [x, y] = pt(e), f = Math.exp(-e.deltaY * 0.0015), s2 = Math.min(6, Math.max(0.15, v.s * f)); v.x = x - ((x - v.x) / v.s) * s2; v.y = y - ((y - v.y) / v.s) * s2; v.s = s2; draw() }
+      canvas.onwheel = (e) => { e.preventDefault(); const [x, y] = pt(e), f = Math.exp(-e.deltaY * 0.0015), s2 = Math.min(6, Math.max(v.min, v.s * f)); v.x = x - ((x - v.x) / v.s) * s2; v.y = y - ((y - v.y) / v.s) * s2; v.s = s2; draw() }
       canvas.ondblclick = () => { home(); draw() }
       canvas.style.cursor = 'grab'
       for (let i = 0; i < 150; i++) step()

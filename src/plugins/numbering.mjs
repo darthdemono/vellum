@@ -20,7 +20,10 @@ export default function numbering(md) {
       open.level = t[i].level; inl.level = t[i].level + 1; close.level = t[i].level
       open.map = inl.map = t[i].map; open.block = inl.block = close.block = true
       open.hidden = close.hidden = true // legal lists are tight
-      inl.content = `<span class="lm">${esc(m[1])}</span><span class="lt">${m[2]}</span>`
+      let body = m[2]
+      const bid = /(?:^|\s)\^([A-Za-z0-9-]+)\s*$/.exec(body)
+      if (bid) { body = body.slice(0, bid.index); t[k].attrSet('id', '^' + bid[1]) } // a block id on the item: the <li> becomes a link target
+      inl.content = `<span class="lm">${esc(m[1])}</span><span class="lt">${body}</span>`
       inl.children = []
       t.splice(i, 1, open, inl, close)
       t[k].attrJoin('class', 'xli')

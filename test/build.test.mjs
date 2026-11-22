@@ -20,6 +20,8 @@ test('example vault builds: pages, llms, og, icons, lists, gzip, no stale files'
   assert.match(f('Callouts-and-math.html'), /shiki/)
   assert.match(f('Notes/Linking.html'), /id="\^target"/)
   assert.match(f('links.html'), /refresh/)
+  assert.match(f('Clauses.html'), /<li[^>]*id="\^sec-5-1-a"/)
+  assert.match(f('Clauses.html'), /href="\/Clauses#\^sec-5-1-a"/)
   assert.match(f('Lists/llms.txt'), /^---\ntitle: Lists/)
   assert.match(f('llms.txt'), /^# Example/)
   assert.match(f('Callouts-and-math/llms.txt'), /## References/)
