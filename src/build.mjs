@@ -127,7 +127,7 @@ export async function build(site, { log = console.log } = {}) {
       const s = a.split('/').map(slugSegment).join('/')
       if (seen.has(s)) continue
       seen.add(s)
-      sink.write(s + '.html', `<!doctype html><meta charset="utf-8"><title>${esc(p.title)}</title><link rel="canonical" href="${esc(hrefOf(p.slug))}"><meta http-equiv="refresh" content="0; url=${esc(hrefOf(p.slug))}">`)
+      sink.write(s + '.html', `<!doctype html><meta charset="utf-8"><title>${esc(p.title)}</title><link rel="canonical" href="${esc(hrefOf(p.slug))}"><meta http-equiv="refresh" content="0; url=${esc(hrefOf(p.slug))}"><script>location.replace(${JSON.stringify(hrefOf(p.slug))}+location.search+location.hash)</script>`)
     }
   }
 

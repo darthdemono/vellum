@@ -4,6 +4,7 @@
 
 ### Added
 
+- Alias pages keep the address fragment and query string when they redirect, so an old link such as `/acts/act-73#^sec-3-1a` still lands on the clause after a page moves.
 - **Clause permalinks.** A list item that ends in a block id (`^sec-117-1-c`) becomes a link target: the `<li>` gets the id, a `#` link appears beside it on hover and copies its address, the item is highlighted when it is the target, and the page scrolls to it even though the list is laid out with `display: contents`. Links like `[[act-367#^sec-102-3|clause (3) of article 102]]` land on the exact clause.
 - The right sidebar no longer keeps a scrollbar of its own: when it is taller than the window it moves with the page.
 
